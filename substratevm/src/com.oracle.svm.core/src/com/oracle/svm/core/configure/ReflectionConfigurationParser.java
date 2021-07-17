@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.graalvm.nativeimage.impl.ConfigurationPredicate;
+
 import com.oracle.svm.core.TypeResult;
 import com.oracle.svm.core.util.json.JSONParser;
 import com.oracle.svm.core.util.json.JSONParserException;
@@ -50,7 +52,7 @@ public final class ReflectionConfigurationParser<T> extends ConfigurationParser 
     private final boolean allowIncompleteClasspath;
     private static final List<String> OPTIONAL_REFLECT_CONFIG_OBJECT_ATTRS = Arrays.asList("allDeclaredConstructors", "allPublicConstructors",
                     "allDeclaredMethods", "allPublicMethods", "allDeclaredFields", "allPublicFields",
-                    "allDeclaredClasses", "allPublicClasses", "methods", "fields");
+                    "allDeclaredClasses", "allPublicClasses", "methods", "fields", "predicate");
 
     public ReflectionConfigurationParser(ReflectionConfigurationParserDelegate<T> delegate) {
         this(delegate, false, true);
@@ -80,8 +82,24 @@ public final class ReflectionConfigurationParser<T> extends ConfigurationParser 
 
         Object classObject = data.get("name");
         String className = asString(classObject, "name");
+        ConfigurationPredicate predicate = ConfigurationPredicate.objectPredicate();
+        Object predicateData = data.get("predicate");
+        if (predicateData != null) {
+            Map<String, Object> predicateObject = asMap(predicateData, "Attribute 'predicate' must be an object");
+            Object predicateType = predicateObject.get("whenTypeReachable");
+            if (predicateType instanceof String) {
+                TypeResult<ConfigurationPredicate> predicateResult = delegate.resolvePredicate((String) predicateType);
+                if (!predicateResult.isPresent()) {
+                    handleError("Could not resolve predicate " + predicateType + " for reflection configuration.", predicateResult.getException());
+                    return;
+                }
+                predicate = predicateResult.get();
+            } else {
+                warnOrFail("'whenTypeReachable' should be of type string");
+            }
+        }
 
-        TypeResult<T> result = delegate.resolveTypeResult(className);
+        TypeResult<T> result = delegate.resolveType(predicate, className);
         if (!result.isPresent()) {
             handleError("Could not resolve " + className + " for reflection configuration.", result.getException());
             return;
@@ -145,6 +163,7 @@ public final class ReflectionConfigurationParser<T> extends ConfigurationParser 
                 handleError("Could not register " + delegate.getTypeName(clazz) + ": " + name + " for reflection.", e);
             }
         }
+
     }
 
     private void parseFields(List<Object> fields, T clazz) {
@@ -179,8 +198,7 @@ public final class ReflectionConfigurationParser<T> extends ConfigurationParser 
         List<T> methodParameterTypes = null;
         Object parameterTypes = data.get("parameterTypes");
         if (parameterTypes != null) {
-            methodParameterTypes = parseMethodParameters(clazz, methodName, asList(parameterTypes,
-                            "Attribute 'parameterTypes' must be a list of type names"));
+            methodParameterTypes = parseMethodParameters(clazz, methodName, asList(parameterTypes, "Attribute 'parameterTypes' must be a list of type names"));
             if (methodParameterTypes == null) {
                 return;
             }
@@ -220,7 +238,7 @@ public final class ReflectionConfigurationParser<T> extends ConfigurationParser 
         List<T> result = new ArrayList<>();
         for (Object type : types) {
             String typeName = asString(type, "types");
-            TypeResult<T> typeResult = delegate.resolveTypeResult(typeName);
+            TypeResult<T> typeResult = delegate.resolveType(ConfigurationPredicate.objectPredicate(), typeName);
             if (!typeResult.isPresent()) {
                 handleError("Could not register method " + formatMethod(clazz, methodName) + " for reflection.", typeResult.getException());
                 return null;

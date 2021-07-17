@@ -86,15 +86,19 @@ public abstract class ConfigurationParser {
 
         if (unknownAttributes.size() > 0) {
             String message = "Unknown attribute(s) [" + String.join(", ", unknownAttributes) + "] in " + type;
-            if (strictConfiguration) {
-                throw new JSONParserException(message);
-            } else {
-                // Checkstyle: stop
-                System.err.println("WARNING: " + message);
-                // Checkstyle: resume
-            }
+            warnOrFail(message);
             Set<String> unknownAttributesForType = seenUnknownAttributesByType.computeIfAbsent(type, key -> new HashSet<>());
             unknownAttributesForType.addAll(unknownAttributes);
+        }
+    }
+
+    protected void warnOrFail(String message) {
+        if (strictConfiguration) {
+            throw new JSONParserException(message);
+        } else {
+            // Checkstyle: stop
+            System.err.println("WARNING: " + message);
+            // Checkstyle: resume
         }
     }
 

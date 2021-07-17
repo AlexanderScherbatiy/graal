@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,14 +40,46 @@
  */
 package org.graalvm.nativeimage.impl;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
+import java.util.Objects;
 
-public interface ReflectionRegistry {
-    void register(ConfigurationPredicate predicate, Class<?>... classes);
+public final class ConfigurationPredicate {
+    private final String typeName;
+    private static final ConfigurationPredicate OBJECT_PREDICATE = new ConfigurationPredicate(Object.class.getTypeName());
 
-    void register(ConfigurationPredicate predicate, Executable... methods);
+    public static ConfigurationPredicate objectPredicate() {
+        return OBJECT_PREDICATE;
+    }
 
-    void register(ConfigurationPredicate predicate, boolean finalIsWritable, Field... fields);
+    public static ConfigurationPredicate create(String typeReachability) {
+        if (OBJECT_PREDICATE.typeName.equals(typeReachability)) {
+            return OBJECT_PREDICATE;
+        }
+        return new ConfigurationPredicate(typeReachability);
+    }
+
+    private ConfigurationPredicate(String typeName) {
+        this.typeName = typeName;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ConfigurationPredicate predicate = (ConfigurationPredicate) o;
+        return Objects.equals(typeName, predicate.typeName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(typeName);
+    }
 
 }

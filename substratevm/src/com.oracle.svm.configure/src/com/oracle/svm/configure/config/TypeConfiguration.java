@@ -32,28 +32,32 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.graalvm.nativeimage.impl.ConfigurationPredicate;
+
 import com.oracle.svm.configure.ConfigurationBase;
 import com.oracle.svm.configure.json.JsonWriter;
+import com.oracle.svm.core.configure.PredicatedElement;
 import com.oracle.svm.core.util.VMError;
 
 public class TypeConfiguration implements ConfigurationBase {
-    private final ConcurrentMap<String, ConfigurationType> types = new ConcurrentHashMap<>();
+    private final ConcurrentMap<PredicatedElement<String>, ConfigurationType> types = new ConcurrentHashMap<>();
 
     public TypeConfiguration() {
     }
 
     public TypeConfiguration(TypeConfiguration other) {
-        for (ConfigurationType configurationType : other.types.values()) {
-            types.put(configurationType.getQualifiedJavaName(), new ConfigurationType(configurationType));
+        for (Map.Entry<PredicatedElement<String>, ConfigurationType> entry : other.types.entrySet()) {
+            types.put(entry.getKey(), new ConfigurationType(entry.getValue()));
         }
     }
 
     public void removeAll(TypeConfiguration other) {
-        for (Map.Entry<String, ConfigurationType> typeEntry : other.types.entrySet()) {
+        for (Map.Entry<PredicatedElement<String>, ConfigurationType> typeEntry : other.types.entrySet()) {
             types.computeIfPresent(typeEntry.getKey(), (key, value) -> {
                 if (value.equals(typeEntry.getValue())) {
                     return null;
                 }
+                assert value.getPredicate().equals(typeEntry.getValue().getPredicate());
                 assert value.getQualifiedJavaName().equals(typeEntry.getValue().getQualifiedJavaName());
                 value.removeAll(typeEntry.getValue());
                 return value.isEmpty() ? null : value;
@@ -61,30 +65,31 @@ public class TypeConfiguration implements ConfigurationBase {
         }
     }
 
-    public ConfigurationType get(String qualifiedJavaName) {
-        return types.get(qualifiedJavaName);
+    public ConfigurationType get(ConfigurationPredicate predicate, String qualifiedJavaName) {
+        return types.get(new PredicatedElement<>(predicate, qualifiedJavaName));
     }
 
     public void add(ConfigurationType type) {
-        ConfigurationType previous = types.putIfAbsent(type.getQualifiedJavaName(), type);
+        ConfigurationType previous = types.putIfAbsent(new PredicatedElement<>(type.getPredicate(), type.getQualifiedJavaName()), type);
         if (previous != null && previous != type) {
             VMError.shouldNotReachHere("Cannot replace existing type " + previous + " with " + type);
         }
     }
 
-    public ConfigurationType getOrCreateType(String qualifiedForNameString) {
-        return types.computeIfAbsent(SignatureUtil.toInternalClassName(qualifiedForNameString), ConfigurationType::new);
+    public ConfigurationType getOrCreateType(ConfigurationPredicate predicate, String qualifiedForNameString) {
+        return types.computeIfAbsent(new PredicatedElement<>(predicate, qualifiedForNameString), p -> new ConfigurationType(p.getPredicate(), p.getElement()));
     }
 
     @Override
     public void printJson(JsonWriter writer) throws IOException {
+        List<ConfigurationType> typesList = new ArrayList<>(this.types.values());
+        typesList.sort(Comparator.comparing(ConfigurationType::getQualifiedJavaName));
+
         writer.append('[');
         String prefix = "";
-        List<ConfigurationType> list = new ArrayList<>(types.values());
-        list.sort(Comparator.comparing(ConfigurationType::getQualifiedJavaName));
-        for (ConfigurationType value : list) {
+        for (ConfigurationType type : typesList) {
             writer.append(prefix).newline();
-            value.printJson(writer);
+            type.printJson(writer);
             prefix = ",";
         }
         writer.newline().append(']');
