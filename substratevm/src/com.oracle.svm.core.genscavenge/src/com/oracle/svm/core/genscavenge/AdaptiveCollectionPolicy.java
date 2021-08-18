@@ -82,7 +82,7 @@ final class AdaptiveCollectionPolicy extends AbstractCollectionPolicy {
      * discounting of old data points, unlike HotSpot's AdaptiveSizeThroughPutPolicy option
      * (disabled by default) which uses linear least-square fitting without discounting.
      */
-    static final boolean ADAPTIVE_SIZE_USE_COST_ESTIMATORS = false;
+    static final boolean ADAPTIVE_SIZE_USE_COST_ESTIMATORS = true;
     static final int ADAPTIVE_SIZE_POLICY_INITIALIZING_STEPS = ADAPTIVE_SIZE_POLICY_READY_THRESHOLD;
     /** The minimum increase in throughput in percent for expanding a space by 1% of its size. */
     static final double ADAPTIVE_SIZE_ESTIMATOR_MIN_SIZE_THROUGHPUT_TRADEOFF = 0.5;
