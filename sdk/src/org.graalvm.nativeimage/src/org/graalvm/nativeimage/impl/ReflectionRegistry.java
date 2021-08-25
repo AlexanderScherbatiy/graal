@@ -42,12 +42,17 @@ package org.graalvm.nativeimage.impl;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Set;
 
 public interface ReflectionRegistry {
     void register(Class<?>... classes);
 
-    void register(Executable... methods);
+    void register(boolean queriedOnly, Executable... methods);
 
     void register(boolean finalIsWritable, Field... fields);
 
+    default Set<Executable> getQueriedMethods() {
+        return Collections.emptySet();
+    }
 }
