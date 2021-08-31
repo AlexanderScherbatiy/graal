@@ -100,6 +100,13 @@ final class AdaptiveCollectionPolicy implements CollectionPolicy {
     /** The effective number of most recent data points used by estimator (exponential decay). */
     static final int ADAPTIVE_SIZE_COST_ESTIMATORS_HISTORY_LENGTH = ADAPTIVE_TIME_WEIGHT;
 
+    /**
+     * After this number of incremental collections with no full collection, perform a full
+     * collection. Doing so improves our footprint when incremental collections reclaim sufficient
+     * space, but tenured objects can still be reclaimed.
+     */
+    static final int COLLECT_COMPLETELY_AFTER_N_MINOR_COLLECTIONS = 16;
+
     /* Constants derived from other constants. */
     static final double THROUGHPUT_GOAL = 1.0 - 1.0 / (1.0 + GC_TIME_RATIO);
     static final double THRESHOLD_TOLERANCE_PERCENT = 1.0 + THRESHOLD_TOLERANCE / 100.0;
@@ -126,6 +133,7 @@ final class AdaptiveCollectionPolicy implements CollectionPolicy {
     private UnsignedWord survivorSize;
     private UnsignedWord edenSize;
     private long youngGenChangeForMinorThroughput;
+    private int minorCountSinceMajorCollection;
 
     private final Timer majorTimer = new Timer("major/between major");
     private final AdaptiveWeightedAverage avgMajorGcCost = new AdaptiveWeightedAverage(ADAPTIVE_TIME_WEIGHT);
@@ -222,13 +230,17 @@ final class AdaptiveCollectionPolicy implements CollectionPolicy {
     public boolean shouldCollectCompletely(boolean followingIncrementalCollection) { // should_{attempt_scavenge,full_GC}
         guaranteeSizeParametersInitialized();
 
-        if (followingIncrementalCollection && oldSizeExceededInPreviousCollection) {
-            /*
-             * We promoted objects to the old generation beyond its current capacity to avoid a
-             * promotion failure, but due to the chunked nature of our heap, we should still be
-             * within the maximum heap size. Follow up with a full collection during which we either
-             * reclaim enough space or expand the old generation.
-             */
+        if (followingIncrementalCollection) {
+            if (oldSizeExceededInPreviousCollection) {
+                /*
+                 * We promoted objects to the old generation beyond its current capacity to avoid a
+                 * promotion failure, but due to the chunked nature of our heap, we should still be
+                 * within the maximum heap size. Follow up with a full collection during which we
+                 * either reclaim enough space or expand the old generation.
+                 */
+                return true;
+            }
+        } else if (minorCountSinceMajorCollection >= COLLECT_COMPLETELY_AFTER_N_MINOR_COLLECTIONS) {
             return true;
         }
 
@@ -493,11 +505,13 @@ final class AdaptiveCollectionPolicy implements CollectionPolicy {
             updateCollectionEndAverages(avgMajorGcCost, majorCostEstimator, avgMajorIntervalSeconds,
                             cause, latestMajorMutatorIntervalSeconds, timer.getMeasuredNanos(), promoSize);
             majorCount++;
+            minorCountSinceMajorCollection = 0;
 
         } else {
             updateCollectionEndAverages(avgMinorGcCost, minorCostEstimator, null,
                             cause, latestMinorMutatorIntervalSeconds, timer.getMeasuredNanos(), edenSize);
             minorCount++;
+            minorCountSinceMajorCollection++;
 
             if (minorCount >= ADAPTIVE_SIZE_POLICY_READY_THRESHOLD) {
                 youngGenPolicyIsReady = true;
