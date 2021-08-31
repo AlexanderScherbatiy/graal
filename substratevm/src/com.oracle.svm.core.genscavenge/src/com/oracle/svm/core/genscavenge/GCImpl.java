@@ -31,6 +31,7 @@ import java.lang.ref.Reference;
 
 import org.graalvm.compiler.api.replacements.Fold;
 import org.graalvm.nativeimage.CurrentIsolate;
+import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.IsolateThread;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
@@ -40,6 +41,7 @@ import org.graalvm.nativeimage.c.struct.RawField;
 import org.graalvm.nativeimage.c.struct.RawStructure;
 import org.graalvm.nativeimage.c.struct.SizeOf;
 import org.graalvm.nativeimage.hosted.Feature.FeatureAccess;
+import org.graalvm.nativeimage.impl.ProcessPropertiesSupport;
 import org.graalvm.word.Pointer;
 import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
@@ -113,6 +115,8 @@ public final class GCImpl implements GC {
     private final CollectionPolicy policy;
     private boolean completeCollection = false;
     private UnsignedWord sizeBefore = WordFactory.zero();
+    private long rssBefore;
+    private long rssDuring;
     private boolean collectionInProgress = false;
     private UnsignedWord collectionEpoch = WordFactory.zero();
 
@@ -332,6 +336,8 @@ public final class GCImpl implements GC {
         Log verboseGCLog = Log.log();
         HeapImpl heap = HeapImpl.getHeapImpl();
         sizeBefore = ((SubstrateGCOptions.PrintGC.getValue() || HeapOptions.PrintHeapShape.getValue()) ? getChunkBytes() : WordFactory.zero());
+        rssBefore = SubstrateGCOptions.PrintGC.getValue() ? ImageSingletons.lookup(ProcessPropertiesSupport.class).getResidentSetSize() : -1;
+        rssDuring = rssBefore;
         if (SubstrateGCOptions.VerboseGC.getValue() && getCollectionEpoch().equal(1)) {
             verboseGCLog.string("[Heap policy parameters: ").newline();
             verboseGCLog.string("  YoungGenerationSize: ").unsigned(getPolicy().getMaximumYoungGenerationSize()).newline();
@@ -378,6 +384,9 @@ public final class GCImpl implements GC {
                 printGCLog.string("K->");
                 printGCLog.unsigned(sizeAfter.unsignedDivide(1024)).string("K, ");
                 printGCLog.rational(timers.collection.getMeasuredNanos(), TimeUtils.nanosPerSecond, 7).string(" secs");
+                int m = 1024 * 1024;
+                long rssAfter = ImageSingletons.lookup(ProcessPropertiesSupport.class).getResidentSetSize();
+                printGCLog.string(", RSS: ").signed(rssBefore / m).string("M->").signed(rssDuring / m).string("M->").signed(rssAfter / m).string("M");
                 printGCLog.string("]").newline();
             }
             if (SubstrateGCOptions.VerboseGC.getValue()) {
@@ -528,6 +537,10 @@ public final class GCImpl implements GC {
                 HeapImpl.getHeapImpl().addToReferencePendingList(newlyPendingList);
             } finally {
                 referenceObjectsTimer.close();
+            }
+
+            if (SubstrateGCOptions.PrintGC.getValue()) {
+                rssDuring = Math.max(rssDuring, ImageSingletons.lookup(ProcessPropertiesSupport.class).getResidentSetSize());
             }
 
             Timer releaseSpacesTimer = timers.releaseSpaces.open();

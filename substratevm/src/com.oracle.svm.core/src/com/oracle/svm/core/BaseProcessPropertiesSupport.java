@@ -42,4 +42,9 @@ public abstract class BaseProcessPropertiesSupport implements ProcessPropertiesS
     public boolean setArgumentVectorProgramName(String name) {
         return JavaMainWrapper.setCRuntimeArgument0(name);
     }
+
+    @Override
+    public long getResidentSetSize() {
+        return -1; // not supported
+    }
 }

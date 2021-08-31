@@ -72,4 +72,6 @@ public interface ProcessPropertiesSupport {
     String getArgumentVectorProgramName();
 
     boolean setArgumentVectorProgramName(String name);
+
+    long getResidentSetSize();
 }
