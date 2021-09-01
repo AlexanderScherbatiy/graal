@@ -48,12 +48,13 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import com.oracle.svm.core.jdk.Target_java_lang_Module;
 import org.graalvm.compiler.core.common.NumUtil;
 import org.graalvm.compiler.core.common.SuppressFBWarnings;
 import org.graalvm.compiler.serviceprovider.JavaVersionUtil;
@@ -76,12 +77,15 @@ import com.oracle.svm.core.annotate.Uninterruptible;
 import com.oracle.svm.core.annotate.UnknownObjectField;
 import com.oracle.svm.core.classinitialization.ClassInitializationInfo;
 import com.oracle.svm.core.classinitialization.EnsureClassInitializedNode;
+import com.oracle.svm.core.code.CodeInfoDecoder;
 import com.oracle.svm.core.jdk.JDK11OrLater;
 import com.oracle.svm.core.jdk.JDK15OrLater;
 import com.oracle.svm.core.jdk.JDK16OrLater;
 import com.oracle.svm.core.jdk.JDK8OrEarlier;
 import com.oracle.svm.core.jdk.Package_jdk_internal_reflect;
 import com.oracle.svm.core.jdk.Resources;
+import com.oracle.svm.core.jdk.Target_java_lang_Module;
+import com.oracle.svm.core.jdk.Target_jdk_internal_reflect_ConstantPool;
 import com.oracle.svm.core.jdk.Target_jdk_internal_reflect_Reflection;
 import com.oracle.svm.core.meta.SharedType;
 import com.oracle.svm.core.util.LazyFinalReference;
@@ -1134,7 +1138,7 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
          * The original code of getMethods() does a recursive search to avoid creating objects for
          * all public methods. We prepare them during the image build and can just iterate here.
          */
-        Method method = searchMethods(rd.publicMethods, name, parameterTypes);
+        Method method = searchMethods(companion.get().getExtendedRD().publicMethods, name, parameterTypes);
         if (method == null) {
             throw new NoSuchMethodException(describeMethod(getName() + "." + name + "(", parameterTypes, ")"));
         }
@@ -1180,7 +1184,7 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
 
     @Substitute
     private Constructor<?>[] privateGetDeclaredConstructors(boolean publicOnly) {
-        return publicOnly ? rd.publicConstructors : rd.declaredConstructors;
+        return publicOnly ? companion.get().getExtendedRD().publicConstructors : companion.get().getExtendedRD().declaredConstructors;
     }
 
     @Substitute
@@ -1190,7 +1194,79 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
 
     @Substitute
     private Method[] privateGetDeclaredMethods(boolean publicOnly) {
-        return publicOnly ? rd.declaredPublicMethods : rd.declaredMethods;
+        return publicOnly ? companion.get().getExtendedRD().declaredPublicMethods : companion.get().getExtendedRD().declaredMethods;
+    }
+
+    ReflectionData loadReflectionMetadata() {
+        Executable[] data = CodeInfoDecoder.getMethodMetadata(this);
+
+        List<Method> newDeclaredMethodsList = new ArrayList<>();
+        List<Method> newPublicMethodsList = new ArrayList<>();
+        List<Constructor<?>> newDeclaredConstructorsList = new ArrayList<>();
+        List<Constructor<?>> newPublicConstructorsList = new ArrayList<>();
+        List<Method> newDeclaredPublicMethodsList = new ArrayList<>();
+
+        outer: for (Executable method : data) {
+            if (method instanceof Constructor<?>) {
+                Constructor<?> c = (Constructor<?>) method;
+                for (Constructor<?> c2 : rd.declaredConstructors) {
+                    if (Arrays.equals(c.getParameterTypes(), c2.getParameterTypes())) {
+                        continue outer;
+                    }
+                }
+                newDeclaredConstructorsList.add(c);
+                if (Modifier.isPublic(c.getModifiers())) {
+                    newPublicConstructorsList.add(c);
+                }
+            } else {
+                Method m = (Method) method;
+                for (Method m2 : rd.declaredMethods) {
+                    if (m.getName().equals(m2.getName()) && Arrays.equals(m.getParameterTypes(), m2.getParameterTypes())) {
+                        continue outer;
+                    }
+                }
+                newDeclaredMethodsList.add(m);
+                if (Modifier.isPublic(m.getModifiers())) {
+                    newPublicMethodsList.add(m);
+                    newDeclaredPublicMethodsList.add(m);
+                }
+            }
+        }
+        /* Recursively add public superclass methods to the public methods list */
+        for (DynamicHub superclass = getSuperHub(); superclass != null; superclass = superclass.getSuperHub()) {
+            outer: for (Method m : superclass.companion.get().getExtendedRD().declaredPublicMethods) {
+                for (Method m2 : rd.publicMethods) {
+                    if (m.getName().equals(m2.getName()) && Arrays.equals(m.getParameterTypes(), m2.getParameterTypes())) {
+                        continue outer;
+                    }
+                }
+                newPublicMethodsList.add(m);
+            }
+        }
+
+        Method[] newDeclaredMethods = new Method[rd.declaredMethods.length + newDeclaredMethodsList.size()];
+        System.arraycopy(rd.declaredMethods, 0, newDeclaredMethods, 0, rd.declaredMethods.length);
+        System.arraycopy(newDeclaredMethodsList.toArray(new Method[0]), 0, newDeclaredMethods, rd.declaredMethods.length, newDeclaredMethodsList.size());
+
+        Method[] newPublicMethods = new Method[rd.publicMethods.length + newPublicMethodsList.size()];
+        System.arraycopy(rd.publicMethods, 0, newPublicMethods, 0, rd.publicMethods.length);
+        System.arraycopy(newPublicMethodsList.toArray(new Method[0]), 0, newPublicMethods, rd.publicMethods.length, newPublicMethodsList.size());
+
+        Constructor<?>[] newDeclaredConstructors = new Constructor<?>[rd.declaredConstructors.length + newDeclaredConstructorsList.size()];
+        System.arraycopy(rd.declaredConstructors, 0, newDeclaredConstructors, 0, rd.declaredConstructors.length);
+        System.arraycopy(newDeclaredConstructorsList.toArray(new Constructor<?>[0]), 0, newDeclaredConstructors, rd.declaredConstructors.length, newDeclaredConstructorsList.size());
+
+        Constructor<?>[] newPublicConstructors = new Constructor<?>[rd.publicConstructors.length + newPublicConstructorsList.size()];
+        System.arraycopy(rd.publicConstructors, 0, newPublicConstructors, 0, rd.publicConstructors.length);
+        System.arraycopy(newPublicConstructorsList.toArray(new Constructor<?>[0]), 0, newPublicConstructors, rd.publicConstructors.length, newPublicConstructorsList.size());
+
+        Method[] newDeclaredPublicMethods = new Method[rd.declaredPublicMethods.length + newDeclaredPublicMethodsList.size()];
+        System.arraycopy(rd.declaredPublicMethods, 0, newDeclaredPublicMethods, 0, rd.declaredPublicMethods.length);
+        System.arraycopy(newDeclaredPublicMethodsList.toArray(new Method[0]), 0, newDeclaredPublicMethods, rd.declaredPublicMethods.length, newDeclaredPublicMethodsList.size());
+
+        return new ReflectionData(rd.declaredFields, rd.publicFields, rd.publicUnhiddenFields, newDeclaredMethods, newPublicMethods, newDeclaredConstructors, newPublicConstructors,
+                        rd.nullaryConstructor, rd.declaredPublicFields, newDeclaredPublicMethods, rd.declaredClasses, rd.publicClasses, rd.enclosingMethodOrConstructor,
+                        rd.recordComponents);
     }
 
     @Substitute
@@ -1207,7 +1283,7 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
 
     @Substitute
     private Method[] privateGetPublicMethods() {
-        return rd.publicMethods;
+        return companion.get().getExtendedRD().publicMethods;
     }
 
     @KeepOriginal
@@ -1663,10 +1739,6 @@ final class Target_jdk_internal_reflect_ReflectionFactory {
     public static Target_jdk_internal_reflect_ReflectionFactory getReflectionFactory() {
         return soleInstance;
     }
-}
-
-@TargetClass(classNameProvider = Package_jdk_internal_reflect.class, className = "ConstantPool")
-final class Target_jdk_internal_reflect_ConstantPool {
 }
 
 @TargetClass(className = "java.lang.reflect.RecordComponent", onlyWith = JDK16OrLater.class)
