@@ -136,17 +136,24 @@ final class AdaptiveCollectionPolicy extends AbstractCollectionPolicy {
     public boolean shouldCollectCompletely(boolean followingIncrementalCollection) { // should_{attempt_scavenge,full_GC}
         guaranteeSizeParametersInitialized();
 
-        if (followingIncrementalCollection) {
-            if (oldSizeExceededInPreviousCollection) {
-                /*
-                 * We promoted objects to the old generation beyond its current capacity to avoid a
-                 * promotion failure, but due to the chunked nature of our heap, we should still be
-                 * within the maximum heap size. Follow up with a full collection during which we
-                 * either reclaim enough space or expand the old generation.
-                 */
-                return true;
-            }
-        } else if (minorCountSinceMajorCollection >= COLLECT_COMPLETELY_AFTER_N_MINOR_COLLECTIONS) {
+        if (!followingIncrementalCollection) {
+            /*
+             * Always do an incremental collection first because we expect most of the objects in
+             * the young generation to be garbage, and we can reuse their leftover chunks for
+             * copying the live objects in the old generation with fewer allocations.
+             */
+            return false;
+        }
+        if (oldSizeExceededInPreviousCollection) {
+            /*
+             * We promoted objects to the old generation beyond its current capacity to avoid a
+             * promotion failure, but due to the chunked nature of our heap, we should still be
+             * within the maximum heap size. Follow up with a full collection during which we either
+             * reclaim enough space or expand the old generation.
+             */
+            return true;
+        }
+        if (minorCountSinceMajorCollection >= COLLECT_COMPLETELY_AFTER_N_MINOR_COLLECTIONS) {
             return true;
         }
 
