@@ -878,8 +878,6 @@ public class NativeImage {
         addImageBuilderJavaArgs("-Djava.system.class.loader=" + CUSTOM_SYSTEM_CLASS_LOADER);
 
         if (OS.getCurrent() == OS.LINUX && JavaVersionUtil.JAVA_SPEC >= 11) {
-            addImageBuilderJavaArgs("-Dawt.toolkit=sun.awt.X11.XToolkit");
-            addImageBuilderJavaArgs("-Djava.awt.graphicsenv=sun.awt.X11GraphicsEnvironment");
             addImageBuilderJavaArgs("-Djava.awt.printerjob=sun.print.PSPrinterJob");
         }
 
