@@ -108,6 +108,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         nativeLibraries.addStaticJniLibrary("awt");
 
         if (isHeadless()) {
+            registerHeadlessClasses(access);
             NativeLibrarySupport.singleton().preregisterUninitializedBuiltinLibrary("awt_headless");
             nativeLibraries.addStaticJniLibrary("awt_headless", "awt");
         } else {
@@ -211,5 +212,192 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
     private static boolean isHeadless() {
         return GraphicsEnvironment.isHeadless();
+    }
+
+    private static void registerHeadlessClasses(DuringAnalysisAccess access) {
+
+        JNIRuntimeAccess.register(java.awt.AlphaComposite.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.AlphaComposite", "extraAlpha", "rule"));
+
+        JNIRuntimeAccess.register(java.awt.Color.class);
+        JNIRuntimeAccess.register(method(access, "java.awt.Color", "getRGB"));
+
+        JNIRuntimeAccess.register(java.awt.geom.AffineTransform.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.geom.AffineTransform", "m00", "m01", "m02", "m10", "m11", "m12"));
+
+        JNIRuntimeAccess.register(java.awt.geom.GeneralPath.class);
+        JNIRuntimeAccess.register(constructor(access, "java.awt.geom.GeneralPath"));
+        JNIRuntimeAccess.register(constructor(access, "java.awt.geom.GeneralPath", int.class, byte[].class, int.class, float[].class, int.class));
+
+        JNIRuntimeAccess.register(java.awt.geom.Path2D.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.geom.Path2D", "numTypes", "pointTypes", "windingRule"));
+
+        JNIRuntimeAccess.register(java.awt.geom.Path2D.Float.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.geom.Path2D$Float", "floatCoords"));
+
+        JNIRuntimeAccess.register(java.awt.geom.Point2D.Float.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.geom.Point2D$Float", "x", "y"));
+        JNIRuntimeAccess.register(constructor(access, "java.awt.geom.Point2D$Float", float.class, float.class));
+
+        JNIRuntimeAccess.register(java.awt.geom.Rectangle2D.Float.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.geom.Rectangle2D$Float", "height", "width", "x", "y"));
+        JNIRuntimeAccess.register(constructor(access, "java.awt.geom.Rectangle2D$Float"));
+        JNIRuntimeAccess.register(constructor(access, "java.awt.geom.Rectangle2D$Float", float.class, float.class, float.class, float.class));
+
+        JNIRuntimeAccess.register(java.awt.image.BufferedImage.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.image.BufferedImage", "colorModel", "imageType", "raster"));
+        JNIRuntimeAccess.register(method(access, "java.awt.image.BufferedImage", "getRGB", int.class, int.class, int.class, int.class, int[].class, int.class, int.class));
+        JNIRuntimeAccess.register(method(access, "java.awt.image.BufferedImage", "setRGB", int.class, int.class, int.class, int.class, int[].class, int.class, int.class));
+
+        JNIRuntimeAccess.register(java.awt.image.ColorModel.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.image.ColorModel", "colorSpace", "colorSpaceType", "isAlphaPremultiplied", "is_sRGB", "nBits", "numComponents", "pData", "supportsAlpha", "transparency"));
+        JNIRuntimeAccess.register(method(access, "java.awt.image.ColorModel", "getRGBdefault"));
+
+        JNIRuntimeAccess.register(java.awt.image.IndexColorModel.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.image.IndexColorModel", "allgrayopaque", "colorData", "map_size", "rgb", "transparent_index"));
+
+        JNIRuntimeAccess.register(java.awt.image.Raster.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.image.Raster", "dataBuffer", "height", "minX", "minY", "numBands", "numDataElements", "sampleModel", "sampleModelTranslateX", "sampleModelTranslateY", "width"));
+
+        JNIRuntimeAccess.register(java.awt.image.SampleModel.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.image.SampleModel", "height", "width"));
+        JNIRuntimeAccess.register(method(access, "java.awt.image.SampleModel", "getPixels", int.class, int.class, int.class, int.class, int[].class, java.awt.image.DataBuffer.class));
+        JNIRuntimeAccess.register(method(access, "java.awt.image.SampleModel", "setPixels", int.class, int.class, int.class, int.class, int[].class, java.awt.image.DataBuffer.class));
+
+        JNIRuntimeAccess.register(java.awt.image.SinglePixelPackedSampleModel.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.image.SinglePixelPackedSampleModel", "bitMasks", "bitOffsets", "bitSizes", "maxBitSize"));
+
+        JNIRuntimeAccess.register(sun.awt.SunHints.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.SunHints", "INTVAL_STROKE_PURE"));
+
+        JNIRuntimeAccess.register(sun.awt.image.BufImgSurfaceData.ICMColorData.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.image.BufImgSurfaceData$ICMColorData", "pData"));
+        JNIRuntimeAccess.register(constructor(access, "sun.awt.image.BufImgSurfaceData$ICMColorData", long.class));
+
+        JNIRuntimeAccess.register(sun.awt.image.IntegerComponentRaster.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.image.IntegerComponentRaster", "data", "dataOffsets", "pixelStride", "scanlineStride", "type"));
+
+        JNIRuntimeAccess.register(sun.font.CharToGlyphMapper.class);
+        JNIRuntimeAccess.register(method(access, "sun.font.CharToGlyphMapper", "charToGlyph", int.class));
+
+        JNIRuntimeAccess.register(sun.font.Font2D.class);
+        JNIRuntimeAccess.register(method(access, "sun.font.Font2D", "canDisplay", char.class));
+        JNIRuntimeAccess.register(method(access, "sun.font.Font2D", "charToGlyph", int.class));
+        JNIRuntimeAccess.register(method(access, "sun.font.Font2D", "charToVariationGlyph", int.class, int.class));
+        JNIRuntimeAccess.register(method(access, "sun.font.Font2D", "getMapper"));
+        JNIRuntimeAccess.register(method(access, "sun.font.Font2D", "getTableBytes", int.class));
+
+        JNIRuntimeAccess.register(sun.font.FontStrike.class);
+        JNIRuntimeAccess.register(method(access, "sun.font.FontStrike", "getGlyphMetrics", int.class));
+
+        JNIRuntimeAccess.register(method(access, "sun.font.FreetypeFontScaler", "invalidateScaler"));
+
+        JNIRuntimeAccess.register(sun.font.GlyphList.class);
+        JNIRuntimeAccess.register(fields(access, "sun.font.GlyphList", "images", "lcdRGBOrder", "lcdSubPixPos", "len", "positions", "usePositions", "x", "y"));
+
+        JNIRuntimeAccess.register(sun.font.PhysicalStrike.class);
+        JNIRuntimeAccess.register(fields(access, "sun.font.PhysicalStrike", "pScalerContext"));
+        JNIRuntimeAccess.register(method(access, "sun.font.PhysicalStrike", "adjustPoint", java.awt.geom.Point2D.Float.class));
+        JNIRuntimeAccess.register(method(access, "sun.font.PhysicalStrike", "getGlyphPoint", int.class, int.class));
+
+        JNIRuntimeAccess.register(sun.font.StrikeMetrics.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.font.StrikeMetrics", float.class, float.class, float.class, float.class, float.class, float.class, float.class, float.class, float.class, float.class));
+
+        JNIRuntimeAccess.register(sun.font.TrueTypeFont.class);
+        JNIRuntimeAccess.register(method(access, "sun.font.TrueTypeFont", "readBlock", java.nio.ByteBuffer.class, int.class, int.class));
+        JNIRuntimeAccess.register(method(access, "sun.font.TrueTypeFont", "readBytes", int.class, int.class));
+
+        JNIRuntimeAccess.register(sun.font.Type1Font.class);
+        JNIRuntimeAccess.register(method(access, "sun.font.Type1Font", "readFile", java.nio.ByteBuffer.class));
+
+        JNIRuntimeAccess.register(sun.java2d.Disposer.class);
+        JNIRuntimeAccess.register(method(access, "sun.java2d.Disposer", "addRecord", java.lang.Object.class, long.class, long.class));
+
+        JNIRuntimeAccess.register(sun.java2d.InvalidPipeException.class);
+
+        JNIRuntimeAccess.register(sun.java2d.NullSurfaceData.class);
+
+        JNIRuntimeAccess.register(sun.java2d.SunGraphics2D.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.SunGraphics2D", "clipRegion", "composite", "eargb", "lcdTextContrast", "pixel", "strokeHint"));
+
+        JNIRuntimeAccess.register(sun.java2d.SurfaceData.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.SurfaceData", "pData", "valid"));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.Blit.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.Blit", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.BlitBg.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.BlitBg", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.CompositeType.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.loops.CompositeType", "AnyAlpha", "Src", "SrcNoEa", "SrcOver", "SrcOverNoEa", "Xor"));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawGlyphList.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawGlyphList", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawGlyphListAA.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawGlyphListAA", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawGlyphListLCD.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawGlyphListLCD", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawLine.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawLine", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawParallelogram.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawParallelogram", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawPath.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawPath", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawPolygons.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawPolygons", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.DrawRect.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.DrawRect", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.FillParallelogram.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.FillParallelogram", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.FillPath.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.FillPath", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.FillRect.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.FillRect", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.FillSpans.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.FillSpans", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.GraphicsPrimitive.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.loops.GraphicsPrimitive", "pNativePrim"));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.GraphicsPrimitiveMgr.class);
+        JNIRuntimeAccess.register(method(access, "sun.java2d.loops.GraphicsPrimitiveMgr", "register", sun.java2d.loops.GraphicsPrimitive[].class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.GraphicsPrimitive[].class);
+
+        JNIRuntimeAccess.register(sun.java2d.loops.MaskBlit.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.MaskBlit", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.MaskFill.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.MaskFill", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.ScaledBlit.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.ScaledBlit", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.SurfaceType.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.loops.SurfaceType", "Any3Byte", "Any4Byte", "AnyByte", "AnyColor", "AnyInt", "AnyShort", "ByteBinary1Bit", "ByteBinary2Bit", "ByteBinary4Bit", "ByteGray", "ByteIndexed", "ByteIndexedBm", "FourByteAbgr", "FourByteAbgrPre", "Index12Gray", "Index8Gray", "IntArgb", "IntArgbBm", "IntArgbPre", "IntBgr", "IntRgb", "IntRgbx", "OpaqueColor", "ThreeByteBgr", "Ushort4444Argb", "Ushort555Rgb", "Ushort555Rgbx", "Ushort565Rgb", "UshortGray", "UshortIndexed"));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.TransformHelper.class);
+        JNIRuntimeAccess.register(constructor(access, "sun.java2d.loops.TransformHelper", long.class, sun.java2d.loops.SurfaceType.class, sun.java2d.loops.CompositeType.class, sun.java2d.loops.SurfaceType.class));
+
+        JNIRuntimeAccess.register(sun.java2d.loops.XORComposite.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.loops.XORComposite", "alphaMask", "xorColor", "xorPixel"));
+
+        JNIRuntimeAccess.register(sun.java2d.pipe.Region.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.Region", "bands", "endIndex", "hix", "hiy", "lox", "loy"));
+
+        JNIRuntimeAccess.register(sun.java2d.pipe.RegionIterator.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.RegionIterator", "curIndex", "numXbands", "region"));
     }
 }
