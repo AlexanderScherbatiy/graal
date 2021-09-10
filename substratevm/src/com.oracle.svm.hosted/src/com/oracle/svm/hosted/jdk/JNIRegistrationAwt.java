@@ -259,6 +259,8 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(method(access, "java.awt.image.ColorModel", "getRGBdefault"));
 
         JNIRuntimeAccess.register(java.awt.image.IndexColorModel.class);
+        JNIRuntimeAccess.register(fields(access, "java.awt.image.IndexColorModel",
+                "allgrayopaque", "colorData", "map_size", "rgb", "transparent_index"));
 
         JNIRuntimeAccess.register(sun.awt.SunHints.class);
         JNIRuntimeAccess.register(fields(access, "sun.awt.SunHints", "INTVAL_STROKE_PURE"));
@@ -469,9 +471,6 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(method(access, "java.awt.image.BufferedImage",
                 "setRGB", int.class, int.class, int.class, int.class, int[].class, int.class, int.class));
 
-        JNIRuntimeAccess.register(fields(access, "java.awt.image.IndexColorModel",
-                "allgrayopaque", "colorData", "map_size", "rgb", "transparent_index"));
-
         JNIRuntimeAccess.register(java.awt.image.Raster.class);
         JNIRuntimeAccess.register(fields(access, "java.awt.image.Raster",
                 "dataBuffer", "height", "minX", "minY", "numBands", "numDataElements",
@@ -535,9 +534,6 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(constructor(access, "java.awt.image.DirectColorModel",
                 int.class, int.class, int.class, int.class, int.class));
 
-        JNIRuntimeAccess.register(fields(access, "java.awt.image.IndexColorModel",
-                "allgrayopaque", "map_size", "rgb", "transparent_index"));
-
         JNIRuntimeAccess.register(java.lang.ClassLoader.class);
         JNIRuntimeAccess.register(method(access, "java.lang.ClassLoader", "getPlatformClassLoader"));
         JNIRuntimeAccess.register(method(access, "java.lang.ClassLoader", "loadClass", java.lang.String.class));
@@ -582,5 +578,33 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
         JNIRuntimeAccess.register(sun.java2d.xr.XRSurfaceData.class);
         JNIRuntimeAccess.register(fields(access, "sun.java2d.xr.XRSurfaceData", "picture", "xid"));
+
+        JNIRuntimeAccess.register(sun.awt.image.ByteComponentRaster.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.image.ByteComponentRaster",
+                "data", "dataOffsets", "pixelStride", "scanlineStride", "type"));
+
+        JNIRuntimeAccess.register(sun.awt.image.GifImageDecoder.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.image.GifImageDecoder",
+                "outCode", "prefix", "suffix"));
+        JNIRuntimeAccess.register(method(access, "sun.awt.image.GifImageDecoder",
+                "readBytes", byte[].class, int.class, int.class));
+        JNIRuntimeAccess.register(method(access, "sun.awt.image.GifImageDecoder",
+                "sendPixels", int.class, int.class, int.class, int.class, byte[].class, java.awt.image.ColorModel.class));
+
+        JNIRuntimeAccess.register(sun.awt.image.ImageRepresentation.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.image.ImageRepresentation",
+                "numSrcLUT", "srcLUTtransIndex"));
+
+        JNIRuntimeAccess.register(sun.font.FontConfigManager.FcCompFont.class);
+        JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FcCompFont",
+                "allFonts", "fcName", "firstFont"));
+
+        JNIRuntimeAccess.register(sun.font.FontConfigManager.FontConfigFont.class);
+        JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FontConfigFont",
+                "familyName", "fontFile", "fullName", "styleStr"));
+
+        JNIRuntimeAccess.register(sun.font.FontConfigManager.FontConfigInfo.class);
+        JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FontConfigInfo",
+                "cacheDirs", "fcVersion"));
     }
 }
