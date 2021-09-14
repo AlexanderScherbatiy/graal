@@ -110,8 +110,6 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         nativeLibraries.addStaticJniLibrary("awt");
 
         if (isHeadless()) {
-            registerHeadlessClasses(access);
-
             NativeLibrarySupport.singleton().preregisterUninitializedBuiltinLibrary("awt_headless");
             nativeLibraries.addStaticJniLibrary("awt_headless", "awt");
         } else {
@@ -460,9 +458,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(sun.java2d.pipe.RegionIterator.class);
         JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.RegionIterator",
                 "curIndex", "numXbands", "region"));
-    }
 
-    private static void registerHeadlessClasses(DuringAnalysisAccess access) {
         JNIRuntimeAccess.register(java.awt.image.BufferedImage.class);
         JNIRuntimeAccess.register(fields(access, "java.awt.image.BufferedImage",
                 "colorModel", "imageType", "raster"));
