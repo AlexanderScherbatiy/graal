@@ -244,6 +244,46 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
         RuntimeReflection.register(byte[].class);
         RuntimeReflection.register(char[].class);
+
+        RuntimeReflection.register(constructor(access, "java.rmi.MarshalledObject",
+                java.lang.Object.class));
+        RuntimeReflection.register(method(access, "java.rmi.MarshalledObject", "get"));
+
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "readInputData", byte[].class, int.class, int.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "skipInputBytes", long.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "warningOccurred", int.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "warningWithMessage", String.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "setImageData", int.class, int.class, int.class, int.class, int.class, byte[].class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "acceptPixels", int.class, boolean.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "passStarted", int.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "passComplete"));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "pushBack", int.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageReader",
+                "skipPastImage", int.class));
+
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageWriter",
+                "writeOutputData", byte[].class, int.class, int.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageWriter",
+                "warningOccurred", int.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageWriter",
+                "warningWithMessage", String.class));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageWriter",
+                "writeMetadata"));
+        JNIRuntimeAccess.register(method(access, "com.sun.imageio.plugins.jpeg.JPEGImageWriter",
+                "grabPixels", int.class));
+
+        JNIRuntimeAccess.register(fields(access, "javax.imageio.plugins.jpeg.JPEGQTable", "qTable"));
+        JNIRuntimeAccess.register(fields(access, "javax.imageio.plugins.jpeg.JPEGHuffmanTable",
+                "lengths", "values"));
     }
 
     private static void registerHtml32bdtd(DuringAnalysisAccess duringAnalysisAccess) {
