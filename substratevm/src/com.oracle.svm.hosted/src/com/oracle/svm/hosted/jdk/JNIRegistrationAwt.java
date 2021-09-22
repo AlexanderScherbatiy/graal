@@ -38,8 +38,10 @@ import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
 import org.graalvm.nativeimage.hosted.Feature;
+import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.impl.InternalPlatform;
 
+import java.util.Arrays;
 import java.awt.GraphicsEnvironment;
 
 @Platforms({InternalPlatform.PLATFORM_JNI.class})
@@ -91,6 +93,12 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
             access.registerReachabilityHandler(JNIRegistrationAwt::registerOceanThemeIcons,
                             clazz(access, "javax.swing.plaf.metal.OceanTheme"));
+
+            access.registerReachabilityHandler(JNIRegistrationAwt::registerDndIcons,
+                            clazz(access, "java.awt.dnd.DragSource"));
+
+            access.registerReachabilityHandler(JNIRegistrationAwt::registerKeyCodes,
+                            clazz(access, "java.awt.event.KeyEvent"));
         }
     }
 
@@ -196,6 +204,22 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         ResourcesRegistry resourcesRegistry = ImageSingletons.lookup(ResourcesRegistry.class);
         resourcesRegistry.addResources("javax.swing.plaf.metal.icons.*");
         resourcesRegistry.addResources("javax.swing.plaf.basic.icons.*");
+    }
+
+    private static void registerDndIcons(DuringAnalysisAccess duringAnalysisAccess) {
+        ResourcesRegistry resourcesRegistry = ImageSingletons.lookup(ResourcesRegistry.class);
+        resourcesRegistry.addResources("sun.awt.*");
+    }
+
+    private static void registerKeyCodes(DuringAnalysisAccess access) {
+
+        String[] keys = Arrays.stream(java.awt.event.KeyEvent.class
+                .getDeclaredFields())
+                .filter(f -> f.getType() == Integer.TYPE && f.getName().startsWith("VK_"))
+                .map(f -> f.getName())
+                .toArray(size -> new String[size]);
+
+        RuntimeReflection.register(fields(access, "java.awt.event.KeyEvent", keys));
     }
 
     private static void registerHtml32bdtd(DuringAnalysisAccess duringAnalysisAccess) {
