@@ -99,6 +99,9 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
             access.registerReachabilityHandler(JNIRegistrationAwt::registerKeyCodes,
                             clazz(access, "java.awt.event.KeyEvent"));
+
+            access.registerReachabilityHandler(JNIRegistrationAwt::registerDataTransferer,
+                    clazz(access, "sun.awt.datatransfer.DataTransferer"));
         }
     }
 
@@ -224,6 +227,23 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 .toArray(size -> new String[size]);
 
         RuntimeReflection.register(fields(access, "java.awt.event.KeyEvent", keys));
+    }
+
+    private static void registerDataTransferer(DuringAnalysisAccess access) {
+
+        RuntimeReflection.register(java.lang.String.class);
+        RuntimeReflection.register(java.util.List.class);
+
+        RuntimeReflection.register(java.io.Reader.class);
+        RuntimeReflection.register(java.io.InputStream.class);
+        RuntimeReflection.register(java.io.Serializable.class);
+        RuntimeReflection.register(java.nio.CharBuffer.class);
+        RuntimeReflection.register(java.nio.ByteBuffer.class);
+
+        RuntimeReflection.register(java.awt.Image.class);
+
+        RuntimeReflection.register(byte[].class);
+        RuntimeReflection.register(char[].class);
     }
 
     private static void registerHtml32bdtd(DuringAnalysisAccess duringAnalysisAccess) {
