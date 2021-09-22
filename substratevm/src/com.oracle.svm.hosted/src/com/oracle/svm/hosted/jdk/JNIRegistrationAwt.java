@@ -102,6 +102,9 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
             access.registerReachabilityHandler(JNIRegistrationAwt::registerDataTransferer,
                     clazz(access, "sun.awt.datatransfer.DataTransferer"));
+
+            access.registerReachabilityHandler(JNIRegistrationAwt::registerShellFolderManager,
+                    clazz(access, "sun.swing.FilePane"));
         }
     }
 
@@ -284,6 +287,11 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(fields(access, "javax.imageio.plugins.jpeg.JPEGQTable", "qTable"));
         JNIRuntimeAccess.register(fields(access, "javax.imageio.plugins.jpeg.JPEGHuffmanTable",
                 "lengths", "values"));
+    }
+
+    private static void registerShellFolderManager(DuringAnalysisAccess access) {
+        RuntimeReflection.register(clazz(access, "sun.awt.shell.ShellFolderManager"));
+        RuntimeReflection.register(constructor(access, "sun.awt.shell.ShellFolderManager"));
     }
 
     private static void registerHtml32bdtd(DuringAnalysisAccess duringAnalysisAccess) {
@@ -655,6 +663,9 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
         JNIRuntimeAccess.register(sun.awt.X11InputMethodBase.class);
         JNIRuntimeAccess.register(fields(access, "sun.awt.X11InputMethodBase", "pData"));
+
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil",
+                "globalErrorHandler", long.class, long.class));
 
         JNIRuntimeAccess.register(sun.java2d.xr.XRBackendNative.class);
         JNIRuntimeAccess.register(fields(access, "sun.java2d.xr.XRBackendNative",
