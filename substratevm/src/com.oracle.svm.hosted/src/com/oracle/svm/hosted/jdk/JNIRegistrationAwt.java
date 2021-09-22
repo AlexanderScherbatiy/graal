@@ -123,6 +123,10 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         } else {
             registerHeadfullClasses(access);
 
+            if (isLinux()) {
+                registerLinuxClasses(access);
+            }
+
             NativeLibrarySupport.singleton().preregisterUninitializedBuiltinLibrary("awt_xawt");
             nativeLibraries.addStaticJniLibrary("awt_xawt", "awt");
 
@@ -626,5 +630,10 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(sun.font.FontConfigManager.FontConfigInfo.class);
         JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FontConfigInfo",
                 "cacheDirs", "fcVersion"));
+    }
+
+    private static void registerLinuxClasses(DuringAnalysisAccess access) {
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XRootWindow"));
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XRootWindow", "getXRootWindow"));
     }
 }
