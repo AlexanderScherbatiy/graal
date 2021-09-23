@@ -94,10 +94,13 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
             access.registerReachabilityHandler(JNIRegistrationAwt::registerOceanThemeIcons,
                             clazz(access, "javax.swing.plaf.metal.OceanTheme"));
 
-            access.registerReachabilityHandler(JNIRegistrationAwt::registerDndIcons,
+            if (!isHeadless()) {
+                access.registerReachabilityHandler(JNIRegistrationAwt::registerBasicLafResources,
+                        clazz(access, "javax.swing.plaf.basic.BasicLookAndFeel"));
+
+                access.registerReachabilityHandler(JNIRegistrationAwt::registerDndIcons,
                             clazz(access, "java.awt.dnd.DragSource"));
 
-            if (!isHeadless()) {
                 access.registerReachabilityHandler(JNIRegistrationAwt::registerKeyCodes,
                         clazz(access, "java.awt.event.KeyEvent"));
 
@@ -219,6 +222,11 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         ResourcesRegistry resourcesRegistry = ImageSingletons.lookup(ResourcesRegistry.class);
         resourcesRegistry.addResources("javax.swing.plaf.metal.icons.*");
         resourcesRegistry.addResources("javax.swing.plaf.basic.icons.*");
+    }
+
+    private static void registerBasicLafResources(DuringAnalysisAccess duringAnalysisAccess) {
+        ResourcesRegistry resourcesRegistry = ImageSingletons.lookup(ResourcesRegistry.class);
+        resourcesRegistry.addResourceBundles("com.sun.swing.internal.plaf.basic.resources.basic");
     }
 
     private static void registerDndIcons(DuringAnalysisAccess duringAnalysisAccess) {
