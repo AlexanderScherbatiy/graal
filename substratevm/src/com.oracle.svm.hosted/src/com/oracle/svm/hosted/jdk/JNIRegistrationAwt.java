@@ -97,14 +97,19 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
             access.registerReachabilityHandler(JNIRegistrationAwt::registerDndIcons,
                             clazz(access, "java.awt.dnd.DragSource"));
 
-            access.registerReachabilityHandler(JNIRegistrationAwt::registerKeyCodes,
-                            clazz(access, "java.awt.event.KeyEvent"));
+            if (!isHeadless()) {
+                access.registerReachabilityHandler(JNIRegistrationAwt::registerKeyCodes,
+                        clazz(access, "java.awt.event.KeyEvent"));
 
-            access.registerReachabilityHandler(JNIRegistrationAwt::registerDataTransferer,
-                    clazz(access, "sun.awt.datatransfer.DataTransferer"));
+                access.registerReachabilityHandler(JNIRegistrationAwt::registerDataTransferer,
+                        clazz(access, "sun.awt.datatransfer.DataTransferer"));
 
-            access.registerReachabilityHandler(JNIRegistrationAwt::registerShellFolderManager,
-                    clazz(access, "sun.swing.FilePane"));
+                access.registerReachabilityHandler(JNIRegistrationAwt::registerShellFolderManager,
+                        clazz(access, "sun.swing.FilePane"));
+
+                access.registerReachabilityHandler(JNIRegistrationAwt::registerFontManager,
+                        clazz(access, "sun.font.SunFontManager"));
+            }
         }
     }
 
@@ -292,6 +297,20 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
     private static void registerShellFolderManager(DuringAnalysisAccess access) {
         RuntimeReflection.register(clazz(access, "sun.awt.shell.ShellFolderManager"));
         RuntimeReflection.register(constructor(access, "sun.awt.shell.ShellFolderManager"));
+    }
+
+    private static void registerFontManager(DuringAnalysisAccess access) {
+        JNIRuntimeAccess.register(fields(access, "sun.font.GlyphLayout$GVData",
+                "_count", "_flags", "_glyphs", "_indices", "_positions"));
+        JNIRuntimeAccess.register(method(access, "sun.font.GlyphLayout$GVData",
+                "grow"));
+
+        if (isLinux()) {
+            JNIRuntimeAccess.register(method(access, "java.awt.GraphicsEnvironment",
+                    "getLocalGraphicsEnvironment"));
+            JNIRuntimeAccess.register(method(access, "sun.java2d.SunGraphicsEnvironment",
+                    "isDisplayLocal"));
+        }
     }
 
     private static void registerHtml32bdtd(DuringAnalysisAccess duringAnalysisAccess) {
