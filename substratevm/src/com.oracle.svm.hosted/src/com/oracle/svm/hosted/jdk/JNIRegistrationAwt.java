@@ -112,6 +112,11 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
                 access.registerReachabilityHandler(JNIRegistrationAwt::registerFontManager,
                         clazz(access, "sun.font.SunFontManager"));
+
+                if (isLinux()) {
+                    access.registerReachabilityHandler(JNIRegistrationAwt::registerGtkFileDialog,
+                            clazz(access, "sun.awt.X11.GtkFileDialogPeer"));
+                }
             }
         }
     }
@@ -319,6 +324,16 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
             JNIRuntimeAccess.register(method(access, "sun.java2d.SunGraphicsEnvironment",
                     "isDisplayLocal"));
         }
+    }
+
+    private static void registerGtkFileDialog(DuringAnalysisAccess access) {
+        JNIRuntimeAccess.register(fields(access, "sun.awt.X11.GtkFileDialogPeer", "widget"));
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.GtkFileDialogPeer",
+                "filenameFilterCallback", java.lang.String.class));
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.GtkFileDialogPeer",
+                "setFileInternal", java.lang.String.class, java.lang.String[].class));
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.GtkFileDialogPeer",
+                "setWindow", long.class));
     }
 
     private static void registerHtml32bdtd(DuringAnalysisAccess duringAnalysisAccess) {
