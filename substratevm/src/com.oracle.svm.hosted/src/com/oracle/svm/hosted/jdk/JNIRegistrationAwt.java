@@ -113,10 +113,8 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 access.registerReachabilityHandler(JNIRegistrationAwt::registerFontManager,
                         clazz(access, "sun.font.SunFontManager"));
 
-                if (isLinux()) {
-                    access.registerReachabilityHandler(JNIRegistrationAwt::registerGtkFileDialog,
-                            clazz(access, "sun.awt.X11.GtkFileDialogPeer"));
-                }
+                access.registerReachabilityHandler(JNIRegistrationAwt::registerGtkFileDialog,
+                        clazz(access, "sun.awt.X11.GtkFileDialogPeer"));
             }
         }
     }
@@ -142,9 +140,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         } else {
             registerHeadfullClasses(access);
 
-            if (isLinux()) {
-                registerLinuxClasses(access);
-            }
+            registerLinuxX11Classes(access);
 
             NativeLibrarySupport.singleton().preregisterUninitializedBuiltinLibrary("awt_xawt");
             nativeLibraries.addStaticJniLibrary("awt_xawt", "awt");
@@ -167,6 +163,14 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
         NativeLibrarySupport.singleton().preregisterUninitializedBuiltinLibrary("javajpeg");
         nativeLibraries.addStaticJniLibrary("javajpeg");
+
+        JNIRuntimeAccess.register(sun.awt.image.JPEGImageDecoder.class);
+        JNIRuntimeAccess.register(method(access, "sun.awt.image.JPEGImageDecoder", "sendHeaderInfo",
+                int.class, int.class, boolean.class, boolean.class, boolean.class));
+        JNIRuntimeAccess.register(method(access, "sun.awt.image.JPEGImageDecoder", "sendPixels",
+                byte[].class, int.class));
+        JNIRuntimeAccess.register(method(access, "sun.awt.image.JPEGImageDecoder", "sendPixels",
+                int[].class, int.class));
     }
 
     private static void registerImagingLib(DuringAnalysisAccess access) {
@@ -682,33 +686,6 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(method(access, "sun.awt.SunToolkit", "awtLockWait", long.class));
         JNIRuntimeAccess.register(method(access, "sun.awt.SunToolkit", "awtUnlock"));
 
-        JNIRuntimeAccess.register(sun.awt.X11.XBaseWindow.class);
-        JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XBaseWindow", "window"));
-        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XBaseWindow", "getWindow"));
-
-        JNIRuntimeAccess.register(sun.awt.X11.XContentWindow.class);
-
-        JNIRuntimeAccess.register(sun.awt.X11.XErrorHandlerUtil.class);
-        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil", "init", long.class));
-
-        JNIRuntimeAccess.register(sun.awt.X11.XToolkit.class);
-        JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XToolkit", "modLockIsShiftLock", "numLockMask"));
-
-        JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XWindow", "drawState", "graphicsConfig", "target"));
-
-        JNIRuntimeAccess.register(sun.awt.X11GraphicsConfig.class);
-        JNIRuntimeAccess.register(fields(access, "sun.awt.X11GraphicsConfig", "aData", "bitsPerPixel", "screen"));
-
-        JNIRuntimeAccess.register(sun.awt.X11GraphicsDevice.class);
-        JNIRuntimeAccess.register(fields(access, "sun.awt.X11GraphicsDevice", "screen"));
-        JNIRuntimeAccess.register(method(access, "sun.awt.X11GraphicsDevice", "addDoubleBufferVisual", int.class));
-
-        JNIRuntimeAccess.register(sun.awt.X11InputMethodBase.class);
-        JNIRuntimeAccess.register(fields(access, "sun.awt.X11InputMethodBase", "pData"));
-
-        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil",
-                "globalErrorHandler", long.class, long.class));
-
         JNIRuntimeAccess.register(sun.java2d.xr.XRBackendNative.class);
         JNIRuntimeAccess.register(fields(access, "sun.java2d.xr.XRBackendNative",
                 "FMTPTR_A8", "FMTPTR_ARGB32", "MASK_XIMG"));
@@ -725,8 +702,9 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 "outCode", "prefix", "suffix"));
         JNIRuntimeAccess.register(method(access, "sun.awt.image.GifImageDecoder",
                 "readBytes", byte[].class, int.class, int.class));
-        JNIRuntimeAccess.register(method(access, "sun.awt.image.GifImageDecoder",
-                "sendPixels", int.class, int.class, int.class, int.class, byte[].class, java.awt.image.ColorModel.class));
+        JNIRuntimeAccess.register(method(access, "sun.awt.image.GifImageDecoder", "sendPixels",
+                int.class, int.class, int.class, int.class,
+                byte[].class, java.awt.image.ColorModel.class));
 
         JNIRuntimeAccess.register(sun.awt.image.ImageRepresentation.class);
         JNIRuntimeAccess.register(fields(access, "sun.awt.image.ImageRepresentation",
@@ -740,13 +718,48 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FontConfigFont",
                 "familyName", "fontFile", "fullName", "styleStr"));
 
-        JNIRuntimeAccess.register(sun.font.FontConfigManager.FontConfigInfo.class);
-        JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FontConfigInfo",
-                "cacheDirs", "fcVersion"));
+        JNIRuntimeAccess.register(sun.java2d.pipe.ShapeSpanIterator.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.ShapeSpanIterator", "pData"));
+
+        JNIRuntimeAccess.register(java.io.InputStream.class);
+        JNIRuntimeAccess.register(method(access, "java.io.InputStream", "available"));
+        JNIRuntimeAccess.register(method(access, "java.io.InputStream", "read",
+                byte[].class, int.class, int.class));
     }
 
-    private static void registerLinuxClasses(DuringAnalysisAccess access) {
+    private static void registerLinuxX11Classes(DuringAnalysisAccess access) {
+
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XWindow"));
+        JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XWindow", "drawState",
+                "graphicsConfig", "target"));
+
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XFramePeer"));
         JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XRootWindow"));
         JNIRuntimeAccess.register(method(access, "sun.awt.X11.XRootWindow", "getXRootWindow"));
+
+        JNIRuntimeAccess.register(sun.awt.X11.XBaseWindow.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XBaseWindow", "window"));
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XBaseWindow", "getWindow"));
+
+        JNIRuntimeAccess.register(sun.awt.X11.XContentWindow.class);
+
+        JNIRuntimeAccess.register(sun.awt.X11.XErrorHandlerUtil.class);
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil", "init", long.class));
+
+        JNIRuntimeAccess.register(sun.awt.X11.XToolkit.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XToolkit", "modLockIsShiftLock", "numLockMask"));
+
+        JNIRuntimeAccess.register(sun.awt.X11GraphicsConfig.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.X11GraphicsConfig", "aData", "bitsPerPixel", "screen"));
+
+        JNIRuntimeAccess.register(sun.awt.X11GraphicsDevice.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.X11GraphicsDevice", "screen"));
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11GraphicsDevice", "addDoubleBufferVisual", int.class));
+
+        JNIRuntimeAccess.register(sun.awt.X11InputMethodBase.class);
+        JNIRuntimeAccess.register(fields(access, "sun.awt.X11InputMethodBase", "pData"));
+
+        JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil", "globalErrorHandler",
+                long.class, long.class));
     }
 }
