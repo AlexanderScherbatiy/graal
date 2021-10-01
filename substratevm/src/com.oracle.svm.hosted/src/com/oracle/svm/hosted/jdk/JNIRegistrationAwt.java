@@ -42,6 +42,7 @@ import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.impl.InternalPlatform;
 
 import java.util.Arrays;
+import java.util.List;
 import java.awt.GraphicsEnvironment;
 
 @Platforms({InternalPlatform.PLATFORM_JNI.class})
@@ -139,7 +140,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
             nativeLibraries.addStaticJniLibrary("awt_headless", "awt");
         } else {
             registerHeadfullClasses(access);
-
+            registerLookAndFeelClasses(access);
             registerLinuxX11Classes(access);
 
             NativeLibrarySupport.singleton().preregisterUninitializedBuiltinLibrary("awt_xawt");
@@ -761,5 +762,50 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
         JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil", "globalErrorHandler",
                 long.class, long.class));
+    }
+
+    private static void registerLookAndFeelClasses(DuringAnalysisAccess access) {
+
+        RuntimeReflection.register(clazz(access, "com.sun.java.swing.plaf.motif.MotifLookAndFeel"));
+        RuntimeReflection.register(constructor(access, "com.sun.java.swing.plaf.motif.MotifLookAndFeel"));
+
+        List.of("MotifButtonUI",
+                "MotifCheckBoxUI",
+                "MotifFileChooserUI",
+                "MotifLabelUI",
+                "MotifMenuBarUI",
+                "MotifMenuUI",
+                "MotifMenuItemUI",
+                "MotifCheckBoxMenuItemUI",
+                "MotifRadioButtonMenuItemUI",
+                "MotifRadioButtonUI",
+                "MotifToggleButtonUI",
+                "MotifPopupMenuUI",
+                "MotifProgressBarUI",
+                "MotifScrollBarUI",
+                "MotifScrollPaneUI",
+                "MotifSliderUI",
+                "MotifSplitPaneUI",
+                "MotifTabbedPaneUI",
+                "MotifTextAreaUI",
+                "MotifTextFieldUI",
+                "MotifPasswordFieldUI",
+                "MotifTextPaneUI",
+                "MotifEditorPaneUI",
+                "MotifTreeUI",
+                "MotifInternalFrameUI",
+                "MotifDesktopPaneUI",
+                "MotifSeparatorUI",
+                "MotifPopupMenuSeparatorUI",
+                "MotifOptionPaneUI",
+                "MotifComboBoxUI",
+                "MotifDesktopIconUI")
+                .stream()
+                .map(name -> "com.sun.java.swing.plaf.motif." + name)
+                .forEach(componentUI -> {
+                    RuntimeReflection.register(clazz(access, componentUI));
+                    RuntimeReflection.register(method(access, componentUI, "createUI",
+                            clazz(access, "javax.swing.JComponent")));
+                });
     }
 }
