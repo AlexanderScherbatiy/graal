@@ -66,6 +66,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
             PlatformNativeLibrarySupport.singleton().addBuiltinPkgNativePrefix("java_awt");
             PlatformNativeLibrarySupport.singleton().addBuiltinPkgNativePrefix("sun_awt");
             PlatformNativeLibrarySupport.singleton().addBuiltinPkgNativePrefix("sun_java2d");
+            PlatformNativeLibrarySupport.singleton().addBuiltinPkgNativePrefix("com_sun_java_swing_plaf_gtk");
 
             access.registerReachabilityHandler(JNIRegistrationAwt::registerFreeType,
                             clazz(access, "sun.font.FontManagerNativeLibrary"));
@@ -326,6 +327,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         if (isLinux()) {
             JNIRuntimeAccess.register(method(access, "java.awt.GraphicsEnvironment",
                     "getLocalGraphicsEnvironment"));
+            JNIRuntimeAccess.register(sun.java2d.SunGraphicsEnvironment.class);
             JNIRuntimeAccess.register(method(access, "sun.java2d.SunGraphicsEnvironment",
                     "isDisplayLocal"));
         }
@@ -419,6 +421,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(sun.font.FontStrike.class);
         JNIRuntimeAccess.register(method(access, "sun.font.FontStrike", "getGlyphMetrics", int.class));
 
+        JNIRuntimeAccess.register(clazz(access, "sun.font.FreetypeFontScaler"));
         JNIRuntimeAccess.register(method(access, "sun.font.FreetypeFontScaler", "invalidateScaler"));
 
         JNIRuntimeAccess.register(sun.font.GlyphList.class);
@@ -726,15 +729,28 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(method(access, "java.io.InputStream", "available"));
         JNIRuntimeAccess.register(method(access, "java.io.InputStream", "read",
                 byte[].class, int.class, int.class));
+
+        JNIRuntimeAccess.register(java.lang.Boolean.class);
+        JNIRuntimeAccess.register(constructor(access, "java.lang.Boolean", boolean.class));
+        JNIRuntimeAccess.register(java.lang.Float.class);
+        JNIRuntimeAccess.register(constructor(access, "java.lang.Float", float.class));
+        JNIRuntimeAccess.register(java.lang.Integer.class);
+        JNIRuntimeAccess.register(constructor(access, "java.lang.Integer", int.class));
     }
 
     private static void registerLinuxX11Classes(DuringAnalysisAccess access) {
+
+        JNIRuntimeAccess.register(sun.awt.UNIXToolkit.class);
+        JNIRuntimeAccess.register(method(access, "sun.awt.UNIXToolkit", "loadIconCallback",
+                byte[].class, int.class, int.class, int.class, int.class, int.class, boolean.class));
 
         JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XWindow"));
         JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XWindow", "drawState",
                 "graphicsConfig", "target"));
 
         JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XFramePeer"));
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XDialogPeer"));
+
         JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XRootWindow"));
         JNIRuntimeAccess.register(method(access, "sun.awt.X11.XRootWindow", "getXRootWindow"));
 
@@ -807,5 +823,37 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                     RuntimeReflection.register(method(access, componentUI, "createUI",
                             clazz(access, "javax.swing.JComponent")));
                 });
+
+        ResourcesRegistry resourcesRegistry = ImageSingletons.lookup(ResourcesRegistry.class);
+        resourcesRegistry.addResources("com.sun.java.swing.plaf.motif.icons.*");
+
+        RuntimeReflection.register(clazz(access, "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"));
+        RuntimeReflection.register(constructor(access, "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"));
+
+        resourcesRegistry.addResources("com.sun.java.swing.plaf.gtk.resources.metacity.*");
+
+        List.of("paintTreeExpandedIcon",
+                "paintTreeCollapsedIcon",
+                "paintCheckBoxIcon",
+                "paintRadioButtonIcon",
+                "paintCheckBoxMenuItemCheckIcon",
+                "paintRadioButtonMenuItemCheckIcon",
+                "paintAscendingSortIcon",
+                "paintDescendingSortIcon")
+                .forEach(paintIconMethod -> {
+                    RuntimeReflection.register(method(access, "com.sun.java.swing.plaf.gtk.GTKPainter", paintIconMethod,
+                            javax.swing.plaf.synth.SynthContext.class, java.awt.Graphics.class,
+                            int.class, int.class, int.class, int.class, int.class));
+                });
+
+        RuntimeReflection.register(method(access, "com.sun.java.swing.plaf.gtk.GTKPainter", "paintMenuArrowIcon",
+                javax.swing.plaf.synth.SynthContext.class, java.awt.Graphics.class,
+                int.class, int.class, int.class, int.class, int.class,
+                clazz(access, "com.sun.java.swing.plaf.gtk.GTKConstants$ArrowType")));
+
+        RuntimeReflection.register(method(access, "com.sun.java.swing.plaf.gtk.GTKPainter", "paintToolBarHandleIcon",
+                javax.swing.plaf.synth.SynthContext.class, java.awt.Graphics.class,
+                int.class, int.class, int.class, int.class, int.class,
+                clazz(access, "com.sun.java.swing.plaf.gtk.GTKConstants$Orientation")));
     }
 }
