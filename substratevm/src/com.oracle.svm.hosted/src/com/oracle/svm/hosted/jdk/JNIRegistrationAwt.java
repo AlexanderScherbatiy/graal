@@ -597,6 +597,32 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(fields(access, "sun.java2d.loops.XORComposite",
                 "alphaMask", "xorColor", "xorPixel"));
 
+
+        List.of("sun.java2d.loops.OpaqueCopyAnyToArgb",
+                "sun.java2d.loops.OpaqueCopyArgbToAny",
+                "sun.java2d.loops.XorCopyArgbToAny",
+                "sun.java2d.loops.SetFillRectANY",
+                "sun.java2d.loops.SetFillPathANY",
+                "sun.java2d.loops.SetFillSpansANY",
+                "sun.java2d.loops.SetDrawLineANY",
+                "sun.java2d.loops.SetDrawPolygonsANY",
+                "sun.java2d.loops.SetDrawPathANY",
+                "sun.java2d.loops.SetDrawRectANY",
+                "sun.java2d.loops.XorFillRectANY",
+                "sun.java2d.loops.XorFillPathANY",
+                "sun.java2d.loops.XorFillSpansANY",
+                "sun.java2d.loops.XorDrawLineANY",
+                "sun.java2d.loops.XorDrawPolygonsANY",
+                "sun.java2d.loops.XorDrawPathANY",
+                "sun.java2d.loops.XorDrawRectANY",
+                "sun.java2d.loops.XorDrawGlyphListANY",
+                "sun.java2d.loops.XorDrawGlyphListAAANY")
+                .forEach(graphicsPrimitive -> {
+                    System.out.printf("[jni registration awt] register primitive (class and constructor): %s%n", graphicsPrimitive);
+                    RuntimeReflection.register(clazz(access, graphicsPrimitive));
+                    RuntimeReflection.register(constructor(access, graphicsPrimitive));
+                });
+
         JNIRuntimeAccess.register(sun.java2d.pipe.Region.class);
         JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.Region",
                 "bands", "endIndex", "hix", "hiy", "lox", "loy"));
@@ -829,6 +855,11 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
         RuntimeReflection.register(clazz(access, "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"));
         RuntimeReflection.register(constructor(access, "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"));
+        RuntimeReflection.register(method(access, "com.sun.java.swing.plaf.gtk.GTKLookAndFeel", "createUI",
+                javax.swing.JComponent.class));
+
+        RuntimeReflection.register(clazz(access, "com.sun.java.swing.plaf.gtk.GTKIconFactory"));
+        RuntimeReflection.register(method(access, "com.sun.java.swing.plaf.gtk.GTKIconFactory", "getCheckBoxMenuItemCheckIcon"));
 
         resourcesRegistry.addResources("com.sun.java.swing.plaf.gtk.resources.metacity.*");
 
@@ -855,5 +886,22 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 javax.swing.plaf.synth.SynthContext.class, java.awt.Graphics.class,
                 int.class, int.class, int.class, int.class, int.class,
                 clazz(access, "com.sun.java.swing.plaf.gtk.GTKConstants$Orientation")));
+
+        List.of("getAscendingSortIcon",
+                "getDescendingSortIcon",
+                "getTreeExpandedIcon",
+                "getTreeCollapsedIcon",
+                "getRadioButtonIcon",
+                "getCheckBoxIcon",
+                "getMenuArrowIcon",
+                "getCheckBoxMenuItemCheckIcon",
+                "getRadioButtonMenuItemCheckIcon",
+                "getToolBarHandleIcon")
+                .forEach(getIconMethod -> {
+                    RuntimeReflection.register(method(access, "com.sun.java.swing.plaf.gtk.GTKIconFactory", getIconMethod));
+                });
+
+        RuntimeReflection.register(method(access, "com.sun.java.swing.plaf.gtk.GTKPainter$ListTableFocusBorder",
+                "getSelectedCellBorder"));
     }
 }
