@@ -114,8 +114,6 @@ public abstract class SystemPropertiesSupport {
 
         if (JavaVersionUtil.JAVA_SPEC <= 11) {
             /* AWT system properties are no longer used after JDK 11. */
-            initializeProperty("awt.toolkit", System.getProperty("awt.toolkit"));
-            initializeProperty("java.awt.graphicsenv", System.getProperty("java.awt.graphicsenv"));
             initializeProperty("java.awt.printerjob", System.getProperty("java.awt.printerjob"));
         }
 
