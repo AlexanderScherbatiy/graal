@@ -630,6 +630,9 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.RegionIterator",
                 "curIndex", "numXbands", "region"));
 
+        JNIRuntimeAccess.register(sun.java2d.pipe.ShapeSpanIterator.class);
+        JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.ShapeSpanIterator", "pData"));
+
         JNIRuntimeAccess.register(java.awt.image.BufferedImage.class);
         JNIRuntimeAccess.register(fields(access, "java.awt.image.BufferedImage",
                 "colorModel", "imageType", "raster"));
@@ -746,9 +749,6 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(sun.font.FontConfigManager.FontConfigFont.class);
         JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FontConfigFont",
                 "familyName", "fontFile", "fullName", "styleStr"));
-
-        JNIRuntimeAccess.register(sun.java2d.pipe.ShapeSpanIterator.class);
-        JNIRuntimeAccess.register(fields(access, "sun.java2d.pipe.ShapeSpanIterator", "pData"));
 
         JNIRuntimeAccess.register(java.io.InputStream.class);
         JNIRuntimeAccess.register(method(access, "java.io.InputStream", "available"));
