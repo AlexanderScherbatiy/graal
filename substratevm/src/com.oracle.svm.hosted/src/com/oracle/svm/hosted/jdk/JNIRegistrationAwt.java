@@ -618,7 +618,6 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 "sun.java2d.loops.XorDrawGlyphListANY",
                 "sun.java2d.loops.XorDrawGlyphListAAANY")
                 .forEach(graphicsPrimitive -> {
-                    System.out.printf("[jni registration awt] register primitive (class and constructor): %s%n", graphicsPrimitive);
                     RuntimeReflection.register(clazz(access, graphicsPrimitive));
                     RuntimeReflection.register(constructor(access, graphicsPrimitive));
                 });
