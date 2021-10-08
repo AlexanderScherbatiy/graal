@@ -41,9 +41,11 @@ import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.impl.InternalPlatform;
 
+import java.awt.GraphicsEnvironment;
 import java.util.Arrays;
 import java.util.List;
-import java.awt.GraphicsEnvironment;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Platforms({InternalPlatform.PLATFORM_JNI.class})
 @AutomaticFeature
@@ -718,11 +720,11 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(method(access, "sun.awt.SunToolkit", "awtLockWait", long.class));
         JNIRuntimeAccess.register(method(access, "sun.awt.SunToolkit", "awtUnlock"));
 
-        JNIRuntimeAccess.register(sun.java2d.xr.XRBackendNative.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.java2d.xr.XRBackendNative"));
         JNIRuntimeAccess.register(fields(access, "sun.java2d.xr.XRBackendNative",
                 "FMTPTR_A8", "FMTPTR_ARGB32", "MASK_XIMG"));
 
-        JNIRuntimeAccess.register(sun.java2d.xr.XRSurfaceData.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.java2d.xr.XRSurfaceData"));
         JNIRuntimeAccess.register(fields(access, "sun.java2d.xr.XRSurfaceData", "picture", "xid"));
 
         JNIRuntimeAccess.register(sun.awt.image.ByteComponentRaster.class);
@@ -742,11 +744,11 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(fields(access, "sun.awt.image.ImageRepresentation",
                 "numSrcLUT", "srcLUTtransIndex"));
 
-        JNIRuntimeAccess.register(sun.font.FontConfigManager.FcCompFont.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.font.FontConfigManager$FcCompFont"));
         JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FcCompFont",
                 "allFonts", "fcName", "firstFont"));
 
-        JNIRuntimeAccess.register(sun.font.FontConfigManager.FontConfigFont.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.font.FontConfigManager$FontConfigFont"));
         JNIRuntimeAccess.register(fields(access, "sun.font.FontConfigManager$FontConfigFont",
                 "familyName", "fontFile", "fullName", "styleStr"));
 
@@ -765,7 +767,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
     private static void registerLinuxX11Classes(DuringAnalysisAccess access) {
 
-        JNIRuntimeAccess.register(sun.awt.UNIXToolkit.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.UNIXToolkit"));
         JNIRuntimeAccess.register(method(access, "sun.awt.UNIXToolkit", "loadIconCallback",
                 byte[].class, int.class, int.class, int.class, int.class, int.class, boolean.class));
 
@@ -779,26 +781,26 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XRootWindow"));
         JNIRuntimeAccess.register(method(access, "sun.awt.X11.XRootWindow", "getXRootWindow"));
 
-        JNIRuntimeAccess.register(sun.awt.X11.XBaseWindow.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XBaseWindow"));
         JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XBaseWindow", "window"));
         JNIRuntimeAccess.register(method(access, "sun.awt.X11.XBaseWindow", "getWindow"));
 
-        JNIRuntimeAccess.register(sun.awt.X11.XContentWindow.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XContentWindow"));
 
-        JNIRuntimeAccess.register(sun.awt.X11.XErrorHandlerUtil.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XErrorHandlerUtil"));
         JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil", "init", long.class));
 
-        JNIRuntimeAccess.register(sun.awt.X11.XToolkit.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11.XToolkit"));
         JNIRuntimeAccess.register(fields(access, "sun.awt.X11.XToolkit", "modLockIsShiftLock", "numLockMask"));
 
-        JNIRuntimeAccess.register(sun.awt.X11GraphicsConfig.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11GraphicsConfig"));
         JNIRuntimeAccess.register(fields(access, "sun.awt.X11GraphicsConfig", "aData", "bitsPerPixel", "screen"));
 
-        JNIRuntimeAccess.register(sun.awt.X11GraphicsDevice.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11GraphicsDevice"));
         JNIRuntimeAccess.register(fields(access, "sun.awt.X11GraphicsDevice", "screen"));
         JNIRuntimeAccess.register(method(access, "sun.awt.X11GraphicsDevice", "addDoubleBufferVisual", int.class));
 
-        JNIRuntimeAccess.register(sun.awt.X11InputMethodBase.class);
+        JNIRuntimeAccess.register(clazz(access, "sun.awt.X11InputMethodBase"));
         JNIRuntimeAccess.register(fields(access, "sun.awt.X11InputMethodBase", "pData"));
 
         JNIRuntimeAccess.register(method(access, "sun.awt.X11.XErrorHandlerUtil", "globalErrorHandler",
@@ -810,7 +812,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
         RuntimeReflection.register(clazz(access, "com.sun.java.swing.plaf.motif.MotifLookAndFeel"));
         RuntimeReflection.register(constructor(access, "com.sun.java.swing.plaf.motif.MotifLookAndFeel"));
 
-        List.of("MotifButtonUI",
+        Stream.of("MotifButtonUI",
                 "MotifCheckBoxUI",
                 "MotifFileChooserUI",
                 "MotifLabelUI",
@@ -841,7 +843,6 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 "MotifOptionPaneUI",
                 "MotifComboBoxUI",
                 "MotifDesktopIconUI")
-                .stream()
                 .map(name -> "com.sun.java.swing.plaf.motif." + name)
                 .forEach(componentUI -> {
                     RuntimeReflection.register(clazz(access, componentUI));
