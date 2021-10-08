@@ -42,9 +42,6 @@ import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.impl.InternalPlatform;
 
 import java.awt.GraphicsEnvironment;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 @Platforms({InternalPlatform.PLATFORM_JNI.class})
@@ -249,7 +246,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
     private static void registerKeyCodes(DuringAnalysisAccess access) {
 
-        String[] keys = Arrays.stream(java.awt.event.KeyEvent.class
+        String[] keys = Stream.of(java.awt.event.KeyEvent.class
                 .getDeclaredFields())
                 .filter(f -> f.getType() == Integer.TYPE && f.getName().startsWith("VK_"))
                 .map(f -> f.getName())
@@ -600,7 +597,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 "alphaMask", "xorColor", "xorPixel"));
 
 
-        List.of("sun.java2d.loops.OpaqueCopyAnyToArgb",
+        Stream.of("sun.java2d.loops.OpaqueCopyAnyToArgb",
                 "sun.java2d.loops.OpaqueCopyArgbToAny",
                 "sun.java2d.loops.XorCopyArgbToAny",
                 "sun.java2d.loops.SetFillRectANY",
@@ -863,7 +860,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
 
         resourcesRegistry.addResources("com.sun.java.swing.plaf.gtk.resources.metacity.*");
 
-        List.of("paintTreeExpandedIcon",
+        Stream.of("paintTreeExpandedIcon",
                 "paintTreeCollapsedIcon",
                 "paintCheckBoxIcon",
                 "paintRadioButtonIcon",
@@ -887,7 +884,7 @@ public class JNIRegistrationAwt extends JNIRegistrationUtil implements Feature {
                 int.class, int.class, int.class, int.class, int.class,
                 clazz(access, "com.sun.java.swing.plaf.gtk.GTKConstants$Orientation")));
 
-        List.of("getAscendingSortIcon",
+        Stream.of("getAscendingSortIcon",
                 "getDescendingSortIcon",
                 "getTreeExpandedIcon",
                 "getTreeCollapsedIcon",
